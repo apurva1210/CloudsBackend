@@ -15,9 +15,8 @@ import java.util.Optional;
 import java.util.Random;
 
 @RestController
-@CrossOrigin
-public class ServiceController
-{
+@CrossOrigin(origins = "*")
+public class ServiceController {
     @Autowired
     private QuizRepository repository;
 
@@ -41,9 +40,13 @@ public class ServiceController
     }
 
     @RequestMapping(path = { "/saveNewQuestion" }, method = { RequestMethod.POST })
-    public BaseResponse saveQuestion(@RequestBody final Quiz quiz) {
+    public BaseResponse saveQuestion(@RequestParam(value = "question") String question,
+                                     @RequestParam(value = "answer") String answer) {
         final BaseResponse baseResponse = new BaseResponse();
         try {
+            Quiz quiz = new Quiz();
+            quiz.setQuestion(question);
+            quiz.setAnswer(answer);
             repository.save(quiz);
             baseResponse.setMessage("success");
             return baseResponse;
@@ -67,11 +70,11 @@ public class ServiceController
         return allQuestionsResponse;
     }
 
-    @RequestMapping(path = { "/deleteQuestion/{id}" }, method = { RequestMethod.GET })
-    public BaseResponse deleteQuestion(@PathVariable final String id) {
+    @RequestMapping(path = { "/deleteQuestion" }, method = { RequestMethod.POST })
+    public BaseResponse deleteQuestion(@RequestParam(value = "questionId") String questionId) {
         final BaseResponse baseResponse = new BaseResponse();
         try {
-            repository.deleteById(id);
+            repository.deleteById(questionId);
             baseResponse.setMessage("success");
             return baseResponse;
         }
@@ -82,13 +85,16 @@ public class ServiceController
     }
 
     @RequestMapping(path = { "/updateQuestion" }, method = { RequestMethod.POST })
-    public BaseResponse updateQuestion(@RequestBody final Quiz quiz) {
+    public BaseResponse updateQuestion(@RequestParam(value = "question") String question,
+                                       @RequestParam(value = "answer") String answer,
+                                       @RequestParam(value = "questionId") String questionId) {
         final BaseResponse baseResponse = new BaseResponse();
         try {
-            final Optional<Quiz> quizOptional = repository.findById(quiz.getId());
+            final Optional<Quiz> quizOptional = repository.findById(questionId);
             final Quiz updateQuiz = quizOptional.get();
-            updateQuiz.setQuestion(quiz.getQuestion());
-            updateQuiz.setAnswer(quiz.getAnswer());
+            updateQuiz.setQuestion(question);
+            updateQuiz.setAnswer(answer);
+            repository.save(updateQuiz);
             baseResponse.setMessage("success");
             return baseResponse;
         }
